@@ -1,0 +1,81 @@
+<resources>
+    <string name="app_name">SmartERClient</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">SmartER</string>
+    <string name="nav_header_subtitle">yhou0007@student.monash.edu</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_login">Sign in</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_username">This username is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <string name="checkbox_show_passwd">Show password</string>
+    <string name="action_register_account">Register a new account?</string>
+    <string name="success_login_in">success</string>
+
+    <!--  Strings related to home page  -->
+    <string name="welcome_user_interface">Welcome, </string>
+
+    <!--  Strings related to navigate drawer  -->
+    <string name="nav_title_map">Map of Resident</string>
+    <string name="nav_title_report">Usage Report</string>
+
+    <!--  Strings related to register  -->
+    <string name="title_activity_register">Register</string>
+    <string name="register_first_name">First Name</string>
+    <string name="register_surname">Surname</string>
+    <string name="register_dob">DOB</string>
+    <string name="register_address">Address</string>
+    <string name="register_postcode">Postcode</string>
+    <string name="register_email_address">Email Address</string>
+    <string name="register_mobile">Mobile Number</string>
+    <string name="register_number_of_residents">Number of Residents</string>
+    <string name="register_energy_provider">Name of Energy Provider</string>
+    <string name="register_user_name">User Name</string>
+    <string name="register_password">Password</string>
+    <string name="register_password_repeat">Repeat Password</string>
+    <string name="register_submit_button">Submit</string>
+    <string-array name="resident_number">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+    <string-array name="energy_provider">
+        <item>ActewAGL</item>
+        <item>AGL</item>
+        <item>Alinta Energy</item>
+        <item>Click Energy</item>
+        <item>Dodo Power and Gas</item>
+        <item>EnergyAustralia</item>
+        <item>Lumo Energy</item>
+        <item>Momentum Energy</item>
+        <item>Origin Energy</item>
+        <item>RED Energy</item>
+        <item>Simply Energy</item>
+    </string-array>
+
+    <!-- Strings related to validation -->
+    <string name="error_invalid_first_name">First name can not be empty</string>
+    <string name="error_invalid_surname">Surname can not be empty</string>
+    <string name="error_invalid_dob">Dob can not be empty</string>
+    <string name="error_invalid_address">Address can not be empty</string>
+    <string name="error_invalid_mobile">Mobile can not be empty</string>
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_invalid_postcode">Invalid postcode</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
