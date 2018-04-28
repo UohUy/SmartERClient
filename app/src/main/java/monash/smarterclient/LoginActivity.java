@@ -36,13 +36,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -323,46 +318,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         int IS_PRIMARY = 1;
     }
 
-    public static String findAllByPasswordHash(String passwordHash){
-        LocalHostIPAddress ip = new LocalHostIPAddress();
-        String LOCAL_HOST = "";
-        try {
-            LOCAL_HOST = ip.getIPAddress();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
-        final String methodPath = "/smarter.credential/findByPasswdHash/";
-
-        URL url;
-        HttpURLConnection connection = null;
-        String textResult = "";
-
-        try {
-            url = new URL(BASE_URL + methodPath + passwordHash);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setReadTimeout(10000);
-            connection.setConnectTimeout(15000);
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Accept", "application/json");
-            Scanner inStream = new Scanner(connection.getInputStream());
-            while (inStream.hasNextLine()) {
-                textResult += inStream.nextLine();
-            }
-
-        } catch (MalformedURLException e1) {
-            e1.printStackTrace();
-        } catch (IOException e2) {
-            e2.printStackTrace();
-        } catch (NullPointerException e5) {
-            e5.printStackTrace();
-        } finally {
-            connection.disconnect();
-        }
-        return textResult;
-    }
-
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
@@ -386,7 +341,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected Integer doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
-            result = findAllByPasswordHash(hashPassword);
+            HTTPRequest httpRequest = new HTTPRequest();
+            result = httpRequest.findAllByPasswordHash(hashPassword);
             System.out.print("result");
             System.out.print(result);
             Integer resID = -1;

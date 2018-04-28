@@ -1,6 +1,7 @@
 package monash.smarterclient;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -12,18 +13,12 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Calendar;
-import java.util.Scanner;
 
-public class RegisterActivity extends AppCompatActivity{
+public class RegisterActivity extends AppCompatActivity {
     private EditText mFirstNameView;
     private EditText mSurnameView;
     private EditText mDOBView;
@@ -36,7 +31,7 @@ public class RegisterActivity extends AppCompatActivity{
     private Spinner mNumberOfResidentView;
     private Spinner mEnergyProviderView;
     private UserRegister mRegstTask = null;
-    private String LOCAL_HOST;
+    private HTTPRequest httpRequest;
 
     private int newResID;
 
@@ -57,10 +52,12 @@ public class RegisterActivity extends AppCompatActivity{
         mUsernameView = (EditText) findViewById(R.id.register_username);
         mPasswordView = (EditText) findViewById(R.id.register_password);
 
+        httpRequest = (HTTPRequest) new HTTPRequest();
+
         mDOBView.setInputType(InputType.TYPE_NULL);
-        mDOBView.setOnFocusChangeListener(new View.OnFocusChangeListener(){
+        mDOBView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
-            public void onFocusChange(View v, boolean hasFocus){
+            public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus)
                     showDatePickerDialog();
             }
@@ -81,16 +78,8 @@ public class RegisterActivity extends AppCompatActivity{
             }
         });
 
-        // Initialize local host IP address.
-        LocalHostIPAddress ip = new LocalHostIPAddress();
-        try {
-            LOCAL_HOST = ip.getIPAddress();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
         // Initialize a new resid.
-        SetResID setResID = new SetResID();
+         SetResID setResID = new SetResID();
 
     }
 
@@ -100,15 +89,15 @@ public class RegisterActivity extends AppCompatActivity{
 
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                String date = year+"/"+(monthOfYear+1)+"/"+dayOfMonth;
+                String date = year + "/" + (monthOfYear + 1) + "/" + dayOfMonth;
                 mDOBView.setText(date);
             }
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
 
     }
 
-    private void attemptSubmit(){
-        if (mRegstTask != null){
+    private void attemptSubmit() {
+        if (mRegstTask != null) {
             return;
         }
 
@@ -126,11 +115,11 @@ public class RegisterActivity extends AppCompatActivity{
         String dob = mDOBView.getText().toString().trim();
         String address = mAddressView.getText().toString().trim();
         String email = mEmailAddressView.getText().toString().trim();
-        String mobile = mMobileView.getText().toString().trim();
+        int mobile = Integer.valueOf(mMobileView.getText().toString().trim());
         String postcode = mPostcodeView.getText().toString().trim();
         String username = mUsernameView.getText().toString().trim();
         String password = mPasswordView.getText().toString().trim();
-        String regNumber = mNumberOfResidentView.getSelectedItem().toString();
+        int regNumber = Integer.valueOf(mNumberOfResidentView.getSelectedItem().toString());
         String energyProvider = mEnergyProviderView.getSelectedItem().toString();
         String passwordHash = MD5Parser.encode(password);
 
@@ -138,83 +127,83 @@ public class RegisterActivity extends AppCompatActivity{
         View focusView = null;
 
         //        Check for a valid first name.
-        if (TextUtils.isEmpty(firstName)){
+        if (TextUtils.isEmpty(firstName)) {
             mFirstNameView.setError(getString(R.string.error_invalid_first_name));
             focusView = mFirstNameView;
             cancel = true;
         }
 
         //        Check for a valid surname.
-        if (TextUtils.isEmpty(surname)){
+        if (TextUtils.isEmpty(surname)) {
             mSurnameView.setError(getString(R.string.error_invalid_surname));
             focusView = mSurnameView;
             cancel = true;
         }
 
         //        Check for a valid dob.
-        if (TextUtils.isEmpty(dob)){
+        if (TextUtils.isEmpty(dob)) {
             mDOBView.setError(getString(R.string.error_invalid_dob));
             focusView = mDOBView;
             cancel = true;
         }
 
         //        Check for a valid address.
-        if (TextUtils.isEmpty(address)){
+        if (TextUtils.isEmpty(address)) {
             mAddressView.setError(getString(R.string.error_invalid_address));
             focusView = mAddressView;
             cancel = true;
         }
 
         //        Check for a valid postcode.
-        if (TextUtils.isEmpty(postcode)){
+        if (TextUtils.isEmpty(postcode)) {
             mPostcodeView.setError(getString(R.string.error_invalid_username));
             focusView = mPostcodeView;
             cancel = true;
         }
 
         //        Check for a valid email address.
-        if (TextUtils.isEmpty(email)){
+        if (TextUtils.isEmpty(email)) {
             mEmailAddressView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailAddressView;
             cancel = true;
         }
 
         //        Check for a valid mobile.
-        if (TextUtils.isEmpty(mobile)){
+        if (mobile == 0) {
             mMobileView.setError(getString(R.string.error_invalid_mobile));
             focusView = mMobileView;
             cancel = true;
         }
 
         //        Check for a valid user name.
-        if (TextUtils.isEmpty(username)){
+        if (TextUtils.isEmpty(username)) {
             mUsernameView.setError(getString(R.string.error_invalid_username));
             focusView = mUsernameView;
             cancel = true;
         }
 
         //  Check for a valid password, if the user entered one.
-        if (TextUtils.isEmpty(password)){
+        if (TextUtils.isEmpty(password)) {
             mPasswordView.setError(getString(R.string.error_incorrect_password));
             focusView = mPasswordView;
             cancel = true;
         }
 
-        if (cancel){
+        if (cancel) {
             focusView.requestFocus();
         } else {
             JSONObject resident = jsonResidentParser(address, dob, email, energyProvider, firstName,
                     surname, mobile, postcode, regNumber);
             JSONObject credential = jsonCredentialParser(username, passwordHash, resident);
-            mRegstTask = new UserRegister(resident, credential);
+            mRegstTask = new UserRegister(resident, credential, username, address, postcode);
         }
 
 
     }
 
     private JSONObject jsonResidentParser(String address, String dob, String email, String energyProvider,
-                                          String firstName, String surname, String mobile, String postcode,
-                                          String resNumber){
+                                          String firstName, String surname, int mobile, String postcode,
+                                          int resNumber) {
 
         JSONObject resident = new JSONObject();
         try {
@@ -223,134 +212,92 @@ public class RegisterActivity extends AppCompatActivity{
             resident.put("email", email);
             resident.put("engProvdName", energyProvider);
             resident.put("firstName", firstName);
-            resident.put("mobile", Integer.getInteger(mobile));
+            resident.put("mobile", mobile);
             resident.put("postcode", postcode);
-            resident.put("resNumber", Integer.getInteger(resNumber));
+            resident.put("resNumber", resNumber);
             resident.put("surname", surname);
             resident.put("resid", newResID);
-        } catch (JSONException e){
+        } catch (JSONException e) {
             return null;
         }
         return resident;
     }
 
-    private JSONObject jsonCredentialParser(String username, String passwordHash, JSONObject resident){
+    private JSONObject jsonCredentialParser(String username, String passwordHash, JSONObject resident) {
         JSONObject credential = new JSONObject();
         try {
             credential.put("passwdHash", passwordHash);
             credential.put("userName", username);
             credential.put("resid", resident);
-        } catch (JSONException e){
+        } catch (JSONException e) {
             return null;
         }
         return credential;
     }
 
-    private int findGreatestResID(){
-        final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
-        final String methodCountPath = "/smarter.credential/count";
-        final String methodResidPath = "/smarter.resident";
-
-        URL countUrl, residUrl;
-        HttpURLConnection connection = null;
-        String textResult = "";
-        int count = 0;
-        int residArray[];
-        int greatestResID = -1;
-
-        try {
-            // Get count number of resident in database for initialize the length of resid array.
-            countUrl = new URL(BASE_URL + methodCountPath);
-            connection = (HttpURLConnection) countUrl.openConnection();
-            connection.setReadTimeout(10000);
-            connection.setConnectTimeout(15000);
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Accept", "application/json");
-            Scanner inStream = new Scanner(connection.getInputStream());
-            while (inStream.hasNextLine()) {
-                textResult += inStream.nextLine();
-            }
-            inStream.close();
-            count = Integer.getInteger(textResult);
-
-            // Get resident ID from database.
-            residArray = new int[count];
-            residUrl = new URL(BASE_URL + methodResidPath);
-            connection = (HttpURLConnection) residUrl.openConnection();
-            connection.setReadTimeout(10000);
-            connection.setConnectTimeout(15000);
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Accept", "application/json");
-            inStream = new Scanner(connection.getInputStream());
-            while (inStream.hasNextLine()) {
-                textResult += inStream.nextLine();
-            }
-            inStream.close();
-            JSONArray allResult = new JSONArray(textResult);
-            for (int i = 0; i < allResult.length(); i ++){
-                JSONObject resident = allResult.getJSONObject(i);
-                residArray[i] = resident.getInt("resid");
-            }
-
-            // Find out the greatest resid.
-            for (int id: residArray){
-                if (id >= greatestResID)
-                    greatestResID = id;
-            }
-
-        } catch (MalformedURLException e1) {
-            e1.printStackTrace();
-        } catch (IOException e2) {
-            e2.printStackTrace();
-        } catch (JSONException e3){
-            e3.printStackTrace();
-        } catch (NullPointerException e5) {
-            e5.printStackTrace();
-        } finally {
-            connection.disconnect();
-        }
-        return greatestResID;
-    }
-
-    private void postRegisterData(JSONObject resident, JSONObject credential){
-        final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
-        final String credentialPostPath = "/smarter.credential/";
-        final String residentPostPath = "/smarter.resident/";
 
 
-    public class UserRegister extends AsyncTask<Void, Void, Void>{
+
+    public class UserRegister extends AsyncTask<Void, Void, Integer> {
         private JSONObject postResidentData;
         private JSONObject postCredentialData;
+        private String mUsername;
+        private String mAddress;
+        private String mPostcode;
 
-        UserRegister(JSONObject resident, JSONObject credential){
+        UserRegister(JSONObject resident, JSONObject credential, String username, String addresss,
+                     String postcode) {
             postResidentData = resident;
             postCredentialData = credential;
-        }
-
-        // TODO post json data into credential and resident individually.
-        @Override
-        protected void doInBackground(Void... parmas){
-            postRegisterData(postResidentData, postCredentialData);
-        }
-
-    }
-
-    public class SetResID extends AsyncTask<Void, Void, Integer>{
-
-        SetResID(){}
-
-        @Override
-        protected Integer doInBackground(Void... params){
-            return  findGreatestResID();
+            mUsername = username;
+            mAddress = addresss;
+            mPostcode = postcode;
         }
 
         @Override
-        protected void doPostExecute(Integer resid){
+        protected Integer doInBackground(Void... params) {
+            return httpRequest.postRegisterData(postResidentData, postCredentialData);
+        }
+
+        @Override
+        protected void onPostExecute(Integer responseCode){
+            if (responseCode == 204){
+                Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                intent.putExtra("resid", newResID);
+                intent.putExtra("username", mUsername);
+                intent.putExtra("address", mAddress);
+                intent.putExtra("postcode", mPostcode);
+                startActivity(intent);
+            } else {
+                mFirstNameView.setError("Http request goes wrong.");
+                mFirstNameView.requestFocus();
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
             mRegstTask = null;
-            if (resid != null)
-                newResID = resid + 1;
         }
+
     }
+
+    public class SetResID extends AsyncTask<Void, Void, Integer> {
+
+            SetResID() {
+            }
+
+            @Override
+            protected Integer doInBackground(Void... params) {
+
+                return httpRequest.findGreatestResID();
+            }
+
+            @Override
+            protected void onPostExecute(Integer resid) {
+                mRegstTask = null;
+                if (resid != null)
+                    newResID = resid + 1;
+            }
+        }
 }
+
