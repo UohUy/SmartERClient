@@ -13,10 +13,12 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.Gson;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText mFirstNameView;
@@ -31,9 +33,23 @@ public class RegisterActivity extends AppCompatActivity {
     private Spinner mNumberOfResidentView;
     private Spinner mEnergyProviderView;
     private UserRegister mRegstTask = null;
-    private HTTPRequest httpRequest;
+
+    private String firstName;
+    private String surname;
+    private String dob;
+    private String address;
+    private String email;
+    private long mobile;
+    private String postcode;
+    private String username;
+    private String password;
+    private int regNumber;
+    private String energyProvider;
+    private String passwordHash;
 
     private int newResID;
+    private boolean cancel = false;
+    private View focusView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +67,6 @@ public class RegisterActivity extends AppCompatActivity {
         mEnergyProviderView = (Spinner) findViewById(R.id.register_energy_provider_spinner);
         mUsernameView = (EditText) findViewById(R.id.register_username);
         mPasswordView = (EditText) findViewById(R.id.register_password);
-
-        httpRequest = (HTTPRequest) new HTTPRequest();
 
         mDOBView.setInputType(InputType.TYPE_NULL);
         mDOBView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -79,7 +93,8 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         // Initialize a new resid.
-         SetResID setResID = new SetResID();
+        SetResID setResID = new SetResID();
+        setResID.execute((Void) null);
 
     }
 
@@ -89,7 +104,7 @@ public class RegisterActivity extends AppCompatActivity {
 
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                String date = year + "/" + (monthOfYear + 1) + "/" + dayOfMonth;
+                String date = year + "-" + (monthOfYear + 1) + "-" + dayOfMonth;
                 mDOBView.setText(date);
             }
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
@@ -110,21 +125,26 @@ public class RegisterActivity extends AppCompatActivity {
         mPostcodeView.setError(null);
 
 //        Store values at the time of the register attempt.
-        String firstName = mFirstNameView.getText().toString().trim();
-        String surname = mSurnameView.getText().toString().trim();
-        String dob = mDOBView.getText().toString().trim();
-        String address = mAddressView.getText().toString().trim();
-        String email = mEmailAddressView.getText().toString().trim();
-        int mobile = Integer.valueOf(mMobileView.getText().toString().trim());
-        String postcode = mPostcodeView.getText().toString().trim();
-        String username = mUsernameView.getText().toString().trim();
-        String password = mPasswordView.getText().toString().trim();
-        int regNumber = Integer.valueOf(mNumberOfResidentView.getSelectedItem().toString());
-        String energyProvider = mEnergyProviderView.getSelectedItem().toString();
-        String passwordHash = MD5Parser.encode(password);
+        firstName = mFirstNameView.getText().toString().trim();
+        surname = mSurnameView.getText().toString().trim();
+        dob = mDOBView.getText().toString().trim() + "T00:00:00+10:00";
+        address = mAddressView.getText().toString().trim();
+        email = mEmailAddressView.getText().toString().trim();
+        String inputMobile = mMobileView.getText().toString().trim();
+        //        Check for a valid mobile.
+        if (inputMobile.isEmpty()) {
+            mMobileView.setError(getString(R.string.error_invalid_mobile));
+            focusView = mMobileView;
+            cancel = true;
+        } else
+            mobile = Long.valueOf(inputMobile);
+        postcode = mPostcodeView.getText().toString().trim();
+        username = mUsernameView.getText().toString().trim();
+        password = mPasswordView.getText().toString().trim();
+        regNumber = Integer.valueOf(mNumberOfResidentView.getSelectedItem().toString());
+        energyProvider = mEnergyProviderView.getSelectedItem().toString();
+        passwordHash = MD5Parser.encode(password);
 
-        boolean cancel = false;
-        View focusView = null;
 
         //        Check for a valid first name.
         if (TextUtils.isEmpty(firstName)) {
@@ -166,13 +186,9 @@ public class RegisterActivity extends AppCompatActivity {
             mEmailAddressView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailAddressView;
             cancel = true;
-        }
-
-        //        Check for a valid mobile.
-        if (mobile == 0) {
-            mMobileView.setError(getString(R.string.error_invalid_mobile));
-            focusView = mMobileView;
-            cancel = true;
+        } else {
+            CheckEmailExistance checkEmailExistance = new CheckEmailExistance(email);
+            checkEmailExistance.execute((Void) null);
         }
 
         //        Check for a valid user name.
@@ -180,6 +196,9 @@ public class RegisterActivity extends AppCompatActivity {
             mUsernameView.setError(getString(R.string.error_invalid_username));
             focusView = mUsernameView;
             cancel = true;
+        } else{
+            CheckUsernameExistance checkUsernameExistance = new CheckUsernameExistance(username);
+            checkUsernameExistance.execute((Void) null);
         }
 
         //  Check for a valid password, if the user entered one.
@@ -192,84 +211,73 @@ public class RegisterActivity extends AppCompatActivity {
         if (cancel) {
             focusView.requestFocus();
         } else {
-            JSONObject resident = jsonResidentParser(address, dob, email, energyProvider, firstName,
-                    surname, mobile, postcode, regNumber);
-            JSONObject credential = jsonCredentialParser(username, passwordHash, resident);
-            mRegstTask = new UserRegister(resident, credential, username, address, postcode);
+            Resident resident = new Resident(newResID, address, dob, email, firstName, mobile,
+                    surname, regNumber, energyProvider, postcode);
+            String residentString = stringJsonResidentParser(resident);
+            String credentialString = stringJsonCredentialParser(resident);
+            mRegstTask = new UserRegister(residentString, credentialString);
+            mRegstTask.execute((Void) null);
         }
 
 
     }
 
-    private JSONObject jsonResidentParser(String address, String dob, String email, String energyProvider,
-                                          String firstName, String surname, int mobile, String postcode,
-                                          int resNumber) {
-
-        JSONObject resident = new JSONObject();
-        try {
-            resident.put("address", address);
-            resident.put("dob", dob);
-            resident.put("email", email);
-            resident.put("engProvdName", energyProvider);
-            resident.put("firstName", firstName);
-            resident.put("mobile", mobile);
-            resident.put("postcode", postcode);
-            resident.put("resNumber", resNumber);
-            resident.put("surname", surname);
-            resident.put("resid", newResID);
-        } catch (JSONException e) {
-            return null;
-        }
-        return resident;
+    private String stringJsonResidentParser(Object resident) {
+        Gson gson = new Gson();
+        return gson.toJson(resident);
     }
 
-    private JSONObject jsonCredentialParser(String username, String passwordHash, JSONObject resident) {
-        JSONObject credential = new JSONObject();
-        try {
-            credential.put("passwdHash", passwordHash);
-            credential.put("userName", username);
-            credential.put("resid", resident);
-        } catch (JSONException e) {
-            return null;
-        }
-        return credential;
+    private String stringJsonCredentialParser(Object resident) {
+        SimpleDateFormat spdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+        Date date = new Date();
+        Credential credential = new Credential(username, passwordHash, spdf.format(date)
+                + "T00:00:00+10:00", resident);
+        Gson gson = new Gson();
+        return gson.toJson(credential);
     }
 
+    public class UserRegister extends AsyncTask<Void, Void, Integer>    {
+        private String  postResidentData;
+        private String  postCredentialData;
 
-
-
-    public class UserRegister extends AsyncTask<Void, Void, Integer> {
-        private JSONObject postResidentData;
-        private JSONObject postCredentialData;
-        private String mUsername;
-        private String mAddress;
-        private String mPostcode;
-
-        UserRegister(JSONObject resident, JSONObject credential, String username, String addresss,
-                     String postcode) {
+        UserRegister(String resident, String credential) {
             postResidentData = resident;
             postCredentialData = credential;
-            mUsername = username;
-            mAddress = addresss;
-            mPostcode = postcode;
         }
 
         @Override
         protected Integer doInBackground(Void... params) {
-            return httpRequest.postRegisterData(postResidentData, postCredentialData);
+            int code = HTTPRequest.postResidentData(postResidentData);
+            if (code == 204)
+                code = HTTPRequest.postCredentialData(postCredentialData);
+            return code;
         }
 
         @Override
         protected void onPostExecute(Integer responseCode){
-            if (responseCode == 204){
-                Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                intent.putExtra("resid", newResID);
-                intent.putExtra("username", mUsername);
-                intent.putExtra("address", mAddress);
-                intent.putExtra("postcode", mPostcode);
-                startActivity(intent);
-            } else {
-                mFirstNameView.setError("Http request goes wrong.");
+            String error = "";
+            switch (responseCode){
+                case 204:
+                    Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                    intent.putExtra("resid", newResID);
+                    intent.putExtra("firstName", firstName);
+                    intent.putExtra("address", address);
+                    intent.putExtra("postcode", postcode);
+                    startActivity(intent);
+                    break;
+                case -2:
+                    error = "Resident post goes wrong";
+                    break;
+                case -1:
+                    error = "Credential post goes wrong";
+                    break;
+                default:
+                    error = "Http status: " + responseCode;
+                    break;
+            }
+
+            if (responseCode != 204){
+                mFirstNameView.setError(error);
                 mFirstNameView.requestFocus();
             }
         }
@@ -289,7 +297,7 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             protected Integer doInBackground(Void... params) {
 
-                return httpRequest.findGreatestResID();
+                return HTTPRequest.findGreatestResID();
             }
 
             @Override
@@ -298,6 +306,50 @@ public class RegisterActivity extends AppCompatActivity {
                 if (resid != null)
                     newResID = resid + 1;
             }
+    }
+
+
+    public class CheckEmailExistance extends AsyncTask<Void, Void, Boolean>{
+        private String inputEmail;
+        CheckEmailExistance(String input){
+            inputEmail = input;
         }
+
+        @Override
+        protected Boolean doInBackground(Void... params){
+            return HTTPRequest.isEmailExist(inputEmail);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean exist){
+            if (exist) {
+                mEmailAddressView.setError("Exist email address");
+                cancel = true;
+                focusView = mEmailAddressView;
+            }
+        }
+    }
+
+    public class CheckUsernameExistance extends AsyncTask<Void, Void, Boolean>{
+        private String inputUsername;
+        CheckUsernameExistance(String input){
+            inputUsername = input;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params){
+            return HTTPRequest.isUsernameExist(inputUsername);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean exist){
+            if (exist) {
+                mUsernameView.setError("Exist username");
+                cancel = true;
+                focusView = mUsernameView;
+            }
+        }
+    }
+
 }
 

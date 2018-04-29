@@ -36,7 +36,8 @@
                     android:hint="@string/register_first_name"
                     android:inputType="textPersonName"
                     android:maxLines="1"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    android:text="Yu"/>
 
             </android.support.design.widget.TextInputLayout>
 
@@ -54,7 +55,8 @@
                     android:imeOptions="actionUnspecified"
                     android:inputType="textPersonName"
                     android:maxLines="1"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    android:text="Hou"/>
 
             </android.support.design.widget.TextInputLayout>
 
@@ -70,7 +72,8 @@
                     android:maxLines="1"
                     android:singleLine="true"
                     android:inputType="date"
-                    android:imeActionLabel="@string/register_dob"/>
+                    android:imeActionLabel="@string/register_dob"
+                    android:text="1995-06-27"/>
 
             </android.support.design.widget.TextInputLayout>
 
@@ -86,7 +89,8 @@
                     android:maxLines="1"
                     android:singleLine="true"
                     android:inputType="text"
-                    android:imeActionLabel="@string/register_address"/>
+                    android:imeActionLabel="@string/register_address"
+                    android:text="22 Boston Ave"/>
 
             </android.support.design.widget.TextInputLayout>
 
@@ -104,7 +108,8 @@
                     android:inputType="textPostalAddress"
                     android:digits="0123456789"
                     android:maxLength="4"
-                    android:imeActionLabel="@string/register_postcode"/>
+                    android:imeActionLabel="@string/register_postcode"
+                    android:text="3145"/>
 
             </android.support.design.widget.TextInputLayout>
 
@@ -120,7 +125,8 @@
                     android:maxLines="1"
                     android:singleLine="true"
                     android:inputType="textEmailAddress"
-                    android:imeActionLabel="@string/register_email_address"/>
+                    android:imeActionLabel="@string/register_email_address"
+                    android:text="yhou0007@student.monash.com"/>
 
             </android.support.design.widget.TextInputLayout>
 
@@ -136,9 +142,10 @@
                     android:maxLines="1"
                     android:singleLine="true"
                     android:inputType="phone"
-                    android:maxLength="10"
+                    android:maxLength="9"
                     android:digits="1234567890"
-                    android:imeActionLabel="@string/register_mobile"/>
+                    android:imeActionLabel="@string/register_mobile"
+                    android:text="049121111"/>
 
             </android.support.design.widget.TextInputLayout>
 
@@ -147,7 +154,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/register_number_of_residents"
-                android:clickable="false">
+                android:clickable="false"
+                android:inputType="none">
             </EditText>
 
             <Spinner
@@ -162,7 +170,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/register_energy_provider"
-                android:clickable="false">
+                android:clickable="false"
+                android:inputType="none">
             </EditText>
 
             <Spinner
@@ -184,7 +193,8 @@
                     android:maxLines="1"
                     android:singleLine="true"
                     android:inputType="text"
-                    android:imeActionLabel="@string/register_user_name"/>
+                    android:imeActionLabel="@string/register_user_name"
+                    android:text="yhou"/>
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
@@ -199,7 +209,8 @@
                     android:maxLines="1"
                     android:singleLine="true"
                     android:inputType="textPassword"
-                    android:imeActionLabel="@string/register_password"/>
+                    android:imeActionLabel="@string/register_password"
+                    android:text="123"/>
             </android.support.design.widget.TextInputLayout>
 
             <Button

@@ -327,6 +327,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         private final String mUsername;
         private final String mPassword;
         private final String hashPassword;
+        private String firstName;
         private String result;
         private String address;
         private String postcode;
@@ -340,11 +341,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Integer doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-            HTTPRequest httpRequest = new HTTPRequest();
-            result = httpRequest.findAllByPasswordHash(hashPassword);
-            System.out.print("result");
-            System.out.print(result);
+            result = HTTPRequest.findAllByPasswordHash(hashPassword);
             Integer resID = -1;
             try {
                 JSONObject jsonObject = new JSONArray(result).getJSONObject(0);
@@ -352,6 +349,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 if (usernm.equalsIgnoreCase(mUsername)) {
                     JSONObject resident = jsonObject.getJSONObject("resid");
                     resID = resident.getInt("resid");
+                    firstName = resident.getString("firstName");
                     address = resident.getString("address");
                     postcode = resident.getString("postcode");
                 }
@@ -360,9 +358,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             } catch (Exception e2){
                 return resID;
             }
-
-
-            // TODO: register the new account here.
             return resID;
         }
 
@@ -374,7 +369,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if (resID >= 0) {
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 intent.putExtra("resid", resID);
-                intent.putExtra("username", mUsername);
+                intent.putExtra("firstName", firstName);
                 intent.putExtra("address", address);
                 intent.putExtra("postcode", postcode);
                 startActivity(intent);
