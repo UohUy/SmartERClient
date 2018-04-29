@@ -453,6 +453,7 @@ public class HTTPRequest {
         return latLng;
     }
 
+    // Http requests in report fragment.
     protected static float[] findDailyUsageByResidAndDate(int resid, String date){
         final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
         final String methodPath = "/smarter.elecusage/findDailyUsageByResidAndDate/";
@@ -496,6 +497,91 @@ public class HTTPRequest {
             connection.disconnect();
         }
         return usageArray;
+    }
+
+    protected static float[] findHourlyUsageByResidAndDate(int resid, String date){
+        final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
+        final String methodPath = "/smarter.elecusage/findDailyOrHourlyUsageByResidDateAndView/";
+
+        URL url;
+        HttpURLConnection connection = null;
+        String textResult;
+        float usage[] = new float[24];
+        try {
+            // Get resident ID from database.
+            url = new URL(BASE_URL + methodPath + resid + "/" + date + "/hourly");
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            Scanner inStreamResID = new Scanner(connection.getInputStream());
+            textResult = "";
+            while (inStreamResID.hasNextLine()) {
+                textResult += inStreamResID.nextLine();
+            }
+            String temp;
+            int hour;
+            JSONObject hourData;
+            JSONArray result = new JSONArray(textResult);
+            for (int i = 0; i < result.length(); i++){
+                hourData = result.getJSONObject(i);
+                hour = hourData.getInt("time");
+                temp = hourData.get("usage").toString();
+                usage[hour] = Float.valueOf(temp);
+            }
+
+        } catch (MalformedURLException e1) {
+            e1.printStackTrace();
+        } catch (IOException e2) {
+            e2.printStackTrace();
+        } catch (JSONException e3) {
+            e3.printStackTrace();
+        } catch (NullPointerException e5) {
+            e5.printStackTrace();
+        } finally {
+            connection.disconnect();
+        }
+        return usage;
+    }
+
+    protected static JSONArray findDailyLastMonthUsageByResidAndDate(int resid, String date) {
+        final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
+        final String methodPath = "/smarter.elecusage/findDailyOrHourlyUsageByResidDateAndView/";
+
+        URL url;
+        HttpURLConnection connection = null;
+        String textResult;
+        JSONArray result = null;
+        try {
+            // Get resident ID from database.
+            url = new URL(BASE_URL + methodPath + resid + "/" + date  + "/daily");
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            Scanner inStreamResID = new Scanner(connection.getInputStream());
+            textResult = "";
+            while (inStreamResID.hasNextLine()) {
+                textResult += inStreamResID.nextLine();
+            }
+            result = new JSONArray(textResult);
+
+        } catch (MalformedURLException e1) {
+            e1.printStackTrace();
+        } catch (IOException e2) {
+            e2.printStackTrace();
+        } catch (JSONException e3) {
+            e3.printStackTrace();
+        } catch (NullPointerException e5) {
+            e5.printStackTrace();
+        } finally {
+            connection.disconnect();
+        }
+        return result;
     }
 }
 

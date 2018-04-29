@@ -84,6 +84,11 @@
     <!-- Strings related to report main fragment -->
     <string name="pie_chart_input_date">Input a date</string>
 
+    <!-- Strings related to report main fragment -->
+    <string-array name="time_period">
+        <item>daily</item>
+        <item>hourly</item>
+    </string-array>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
