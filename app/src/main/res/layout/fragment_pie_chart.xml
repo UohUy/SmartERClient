@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/pie_chart"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        tools:layout_alignParentLeft="true"
+        tools:layout_alignParentStart="true"
+        android:layout_below="@+id/pie_chart_input_date"
+        android:layout_marginTop="@dimen/activity_horizontal_margin"/>
+
+    <Button
+        android:id="@+id/pie_chart_bt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Show Chart"/>
+
+    <EditText
+        android:id="@+id/pie_chart_input_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/pie_chart_bt"
+        android:hint="@string/pie_chart_input_date"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:inputType="date"/>
+
+</RelativeLayout>

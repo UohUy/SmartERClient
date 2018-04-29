@@ -76,6 +76,14 @@
     <string name="error_invalid_email">Invalid email address</string>
     <string name="error_invalid_postcode">Invalid postcode</string>
 
+    <!-- Strings related to report main fragment -->
+    <string name="report_button_pie_chart">Pie Chart</string>
+    <string name="report_button_bar_chart">Bar Chart</string>
+    <string name="report_button_line_chart">Line Chart</string>
+
+    <!-- Strings related to report main fragment -->
+    <string name="pie_chart_input_date">Input a date</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         getSupportActionBar().setTitle("SmartER Client");
         FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.content_frame, new MapFragment()).commit();
+        fragmentManager.beginTransaction().replace(R.id.content_frame, new PieChartFragment()).commit();
     }
 
     @Override
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity
                 nextFragment = new MapFragment();
                 break;
             case R.id.nav_report:
-                nextFragment = new ReportFragment();
+                nextFragment = new PieChartFragment();
                 break;
         }
         FragmentManager fragmentManager = getFragmentManager();
