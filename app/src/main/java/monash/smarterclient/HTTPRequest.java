@@ -3,6 +3,8 @@ package monash.smarterclient;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.mapbox.mapboxsdk.geometry.LatLng;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -316,7 +318,6 @@ public class HTTPRequest {
         return coordinateQuery;
     }
 
-
     // Http requests in Home page.
     @Nullable
     protected static String findWeatherByLocation(String locationQuery){
@@ -363,4 +364,92 @@ public class HTTPRequest {
         return temperature;
     }
 
+    // Http requests in Map fragment.
+    protected static String[] findAllAddressAndPostcode(){
+        final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
+        final String methodPath = "/smarter.resident/";
+
+        URL url;
+        HttpURLConnection connection = null;
+        String textResult = "";
+        String addressArray[] = null;
+        try {
+            url = new URL(BASE_URL + methodPath);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            Scanner inStream = new Scanner(connection.getInputStream());
+            while (inStream.hasNextLine()) {
+                textResult += inStream.nextLine();
+            }
+            JSONArray allResult = new JSONArray(textResult);
+            addressArray = new String[allResult.length()];
+            for (int i = 0; i < allResult.length(); i ++){
+                JSONObject resident = allResult.getJSONObject(i);
+                String temp = resident.getString("address");
+                temp += ",";
+                temp += resident.getString("postcode");
+                addressArray[i] = temp;
+            }
+
+        } catch (MalformedURLException e1) {
+            e1.printStackTrace();
+        } catch (IOException e2) {
+            e2.printStackTrace();
+        } catch (JSONException e3) {
+            e3.printStackTrace();
+        } catch (NullPointerException e5) {
+            e5.printStackTrace();
+        } finally {
+            connection.disconnect();
+        }
+        return addressArray;
+    }
+
+    protected static LatLng getLatLng(String addressQuery) {
+        String GOOGLE_MAP_BASE_URL = "https://maps.googleapis.com/maps/api/geocode/json?address=";
+        String API_KEY = "AIzaSyBge-JRuaDpcdIr1YW6Fs5zEhsuUFFZieY";
+        URL url;
+        HttpURLConnection connection = null;
+        String textResult = "";
+        LatLng latLng = new LatLng();
+
+        try {
+            url = new URL( GOOGLE_MAP_BASE_URL + addressQuery + "&key=" + API_KEY);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            Scanner inStream = new Scanner(connection.getInputStream());
+            while (inStream.hasNextLine()) {
+                textResult += inStream.nextLine();
+            }
+            JSONObject jsonObjectLocation = new JSONObject(textResult);
+            JSONArray jsonArrayResult = jsonObjectLocation.getJSONArray("results");
+            JSONObject geometry = jsonArrayResult.getJSONObject(0).getJSONObject("geometry");
+            JSONObject location = geometry.getJSONObject("location");
+            latLng.setLatitude(location.getDouble("lat"));
+            latLng.setLongitude(location.getDouble("lng"));
+        } catch (MalformedURLException e1) {
+            e1.printStackTrace();
+            return null;
+        } catch (IOException e2) {
+            e2.printStackTrace();
+            return null;
+        } catch (NullPointerException e3) {
+            e3.printStackTrace();
+            return null;
+        } catch (JSONException e4) {
+            e4.printStackTrace();
+            return null;
+        } finally {
+            connection.disconnect();
+        }
+        return latLng;
+    }
 }

@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
+    <group
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_map"
             android:title="@string/nav_title_map"/>
@@ -12,6 +13,4 @@
             android:id="@+id/nav_report"
             android:title="@string/nav_title_report"/>
     </group>
-
-
 </menu>

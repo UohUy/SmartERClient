@@ -1,13 +1,12 @@
 package monash.smarterclient;
 
 import android.app.Fragment;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.mapbox.mapboxsdk.MapboxAccountManager;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -20,59 +19,115 @@ public class MapFragment extends Fragment {
     View vMap;
     private MapboxMap mMapboxMap;
     private MapView mMapView;
+    private LatLng[] latLngs;
+    private String[] queries;
 
-    private final LatLng SAN_FRAN = new LatLng(37.7749, -122.4194);
-
-    @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         vMap = inflater.inflate(R.layout.fragment_map, container, false);
-        MapboxAccountManager.start(getActivity().getApplicationContext());
 
         mMapView = (MapView) vMap.findViewById(R.id.map_view);
         mMapView.onCreate(savedInstanceState);
 
-        mMapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(MapboxMap mapboxMap) {
-                mMapboxMap = mapboxMap;
-                mMapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(SAN_FRAN, 11));
-                addMarker(mMapboxMap);
-            }
-        });
+        // Initialize address queries.
+        GetAddressQueries getAddressQueries = new GetAddressQueries();
+        getAddressQueries.execute((Void) null);
+
+        // Initialize LatLng of all resident address.
+        GetAllLatLng getAllLatLng = new GetAllLatLng();
+        getAllLatLng.execute((Void) null);
+
 
         return vMap;
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         mMapView.onResume();
     }
 
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         mMapView.onResume();
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
         mMapView.onDestroy();
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState){
+    public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mMapView.onSaveInstanceState(outState);
     }
 
-    private void addMarker(MapboxMap mapboxMap) {
+    private void addMarker(MapboxMap mapboxMap, LatLng givenLatLng) {
         MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(SAN_FRAN);
-        markerOptions.title("San Francisco");
-        markerOptions.snippet("Welcome to San Fran!");
+        markerOptions.position(givenLatLng);
         mapboxMap.addMarker(markerOptions);
+    }
+
+
+    private String generateQuery(String address) {
+        String pieces[] = address.split(",");
+        String street[] = pieces[0].split(" ");
+        String postcode = pieces[1];
+        String query = "";
+        for (String piece : street) {
+            query += piece.trim();
+            query += "+";
+        }
+        query += postcode;
+        return query;
+    }
+
+    public class GetAddressQueries extends AsyncTask<Void, Void, Boolean> {
+        public GetAddressQueries() {
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            String[] addressArray = HTTPRequest.findAllAddressAndPostcode();
+            queries = new String[addressArray.length];
+            for (int i = 0; i < addressArray.length; i++) {
+                queries[i] = generateQuery(addressArray[i]);
+            }
+            return true;
+        }
+    }
+
+    public class GetAllLatLng extends AsyncTask<Void, Void, Boolean> {
+        public GetAllLatLng() {
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            latLngs = new LatLng[queries.length];
+            for (int i = 0; i < queries.length; i++) {
+                latLngs[i] = HTTPRequest.getLatLng(queries[i]);
+            }
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean success) {
+            if (success) {
+                // Add markers for all residents on map
+                for (final LatLng latLng : latLngs) {
+                    mMapView.getMapAsync(new OnMapReadyCallback() {
+                        @Override
+                        public void onMapReady(MapboxMap mapboxMap) {
+                            mMapboxMap = mapboxMap;
+                            mMapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10));
+                            addMarker(mMapboxMap, latLng);
+                        }
+                    });
+                }
+            }
+        }
     }
 }

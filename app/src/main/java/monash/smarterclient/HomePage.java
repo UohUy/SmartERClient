@@ -57,8 +57,6 @@ public class HomePage extends Fragment {
         return query;
     }
 
-
-
     public class CurrentWeather extends AsyncTask<Void, Void, String>{
         private String addressQuery;
         final private TextView weatherView;
@@ -86,6 +84,8 @@ public class HomePage extends Fragment {
             }
         }
     }
+
+
 
 
 }
