@@ -18,7 +18,7 @@ import java.text.DecimalFormat;
 import java.util.Scanner;
 
 public class HTTPRequest {
-    private static String LOCAL_HOST = "118.139.55.123";
+    private static String LOCAL_HOST = "118.139.31.88";
 
     // Http requests in Register
     protected static int findGreatestResID() {

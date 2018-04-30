@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         getSupportActionBar().setTitle("SmartER Client");
         FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.content_frame, new BarChartFragment()).commit();
+        fragmentManager.beginTransaction().replace(R.id.content_frame, new LineChartFragment()).commit();
     }
 
     @Override
