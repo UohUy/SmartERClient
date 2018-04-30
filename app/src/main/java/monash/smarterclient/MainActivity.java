@@ -2,6 +2,7 @@ package monash.smarterclient;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,11 +17,23 @@ import com.mapbox.mapboxsdk.MapboxAccountManager;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    protected DBManager dbManager;
+    private String address;
+    private String postcode;
+    private String resid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        dbManager = new DBManager(this);
+
+        Intent intent = getIntent();
+        address = intent.getStringExtra("address");
+        postcode = intent.getStringExtra("postcode");
+        resid = intent.getStringExtra("resid");
+
 
         MapboxAccountManager.start(getApplicationContext());
 
@@ -93,4 +106,30 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    private String generateQuery(){
+        String location[] = address.split(",");
+        String street[] = location[0].split(" ");
+        String query = "";
+        for (String piece: street) {
+            query += piece.trim();
+            query += "+";
+        }
+        query += postcode;
+        return query;
+    }
+
+//    public class UpdateDailyUsage extends AsyncTask<Void, Void, String>{
+//        public UpdateDailyUsage(){}
+//        @Override
+//        protected String  doInBackground(Void... params){
+//            String locationQuery = HTTPRequest.findLocationByAddress(generateQuery());
+//            return HTTPRequest.findWeatherByLocation(locationQuery);
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String weather){
+//            dbManager.inserUsage()
+//        }
+//    }
 }

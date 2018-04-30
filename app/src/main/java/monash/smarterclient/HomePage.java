@@ -60,18 +60,16 @@ public class HomePage extends Fragment {
     public class CurrentWeather extends AsyncTask<Void, Void, String>{
         private String addressQuery;
         final private TextView weatherView;
-        private HTTPRequest httpRequest;
 
         CurrentWeather(String query){
             addressQuery = query;
             weatherView = (TextView) vHomePage.findViewById(R.id.weather_view);
-            httpRequest = new HTTPRequest();
         }
 
         @Override
         protected String doInBackground(Void... params){
-            String locationQuery = httpRequest.findLocationByAddress(addressQuery);
-            return httpRequest.findWeatherByLocation(locationQuery);
+            String locationQuery = HTTPRequest.findLocationByAddress(addressQuery);
+            return HTTPRequest.findWeatherByLocation(locationQuery);
         }
 
         @Override

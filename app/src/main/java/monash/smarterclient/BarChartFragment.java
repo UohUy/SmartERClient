@@ -14,6 +14,7 @@ import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,12 @@ public class BarChartFragment extends Fragment {
                 case "hourly":
                     data = HTTPRequest.findHourlyUsageByResidAndDate(resid, "2018-03-17");
                     break;
+                case "daily":
+                    data = new float[31];
+                    for (int i = 0; i < 31; i ++){
+                        data[i] = HTTPRequest.findDailyUsageByResidAndDate(resid, "2018-03-", i);
+                    }
+                    break;
             }
             return true;
         }
@@ -77,6 +84,7 @@ public class BarChartFragment extends Fragment {
                 }
 
                 BarDataSet set = new BarDataSet(entries, "Usage");
+                set.setColors(ColorTemplate.VORDIPLOM_COLORS);
                 BarData barData = new BarData(set);
                 barData.setBarWidth(0.9f);
                 mBarChart.setData(barData);

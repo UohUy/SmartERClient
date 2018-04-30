@@ -546,17 +546,17 @@ public class HTTPRequest {
         return usage;
     }
 
-    protected static JSONArray findDailyLastMonthUsageByResidAndDate(int resid, String date) {
+    protected static float[] findHourlyTemperatureByResidAndDate(int resid, String date){
         final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
         final String methodPath = "/smarter.elecusage/findDailyOrHourlyUsageByResidDateAndView/";
 
         URL url;
         HttpURLConnection connection = null;
         String textResult;
-        JSONArray result = null;
+        float usage[] = new float[24];
         try {
             // Get resident ID from database.
-            url = new URL(BASE_URL + methodPath + resid + "/" + date  + "/daily");
+            url = new URL(BASE_URL + methodPath + resid + "/" + date + "/hourly");
             connection = (HttpURLConnection) url.openConnection();
             connection.setReadTimeout(10000);
             connection.setConnectTimeout(15000);
@@ -568,7 +568,16 @@ public class HTTPRequest {
             while (inStreamResID.hasNextLine()) {
                 textResult += inStreamResID.nextLine();
             }
-            result = new JSONArray(textResult);
+            String temp;
+            int hour;
+            JSONObject hourData;
+            JSONArray result = new JSONArray(textResult);
+            for (int i = 0; i < result.length(); i++){
+                hourData = result.getJSONObject(i);
+                hour = hourData.getInt("time");
+                temp = hourData.get("temperature").toString();
+                usage[hour] = Float.valueOf(temp);
+            }
 
         } catch (MalformedURLException e1) {
             e1.printStackTrace();
@@ -581,7 +590,151 @@ public class HTTPRequest {
         } finally {
             connection.disconnect();
         }
-        return result;
+        return usage;
+    }
+
+    protected static float findDailyTemperatureByResidAndDate(int resid, String date, int theDay) {
+        final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
+        final String methodPath = "/smarter.elecusage/findDailyOrHourlyUsageByResidDateAndView/";
+
+        URL url;
+        HttpURLConnection connection = null;
+        String textResult;
+        JSONArray result = null;
+        float temperature = 0;
+        try {
+            // Get resident ID from database.
+            url = new URL(BASE_URL + methodPath + resid + "/" + date + theDay + "/daily");
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            Scanner inStreamResID = new Scanner(connection.getInputStream());
+            textResult = "";
+            while (inStreamResID.hasNextLine()) {
+                textResult += inStreamResID.nextLine();
+            }
+
+
+            result = new JSONArray(textResult);
+            if (result.length() > 0) {
+                String stringResult = result.getJSONObject(0).getString("temperature");
+                temperature = Float.valueOf(stringResult);
+            }
+
+        } catch (MalformedURLException e1) {
+            e1.printStackTrace();
+        } catch (IOException e2) {
+            e2.printStackTrace();
+        } catch (JSONException e3) {
+            e3.printStackTrace();
+        } catch (NullPointerException e5) {
+            e5.printStackTrace();
+        } finally {
+            connection.disconnect();
+        }
+        return temperature;
+    }
+
+    protected static float findDailyUsageByResidAndDate(int resid, String date, int theDay) {
+        final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
+        final String methodPath = "/smarter.elecusage/findDailyOrHourlyUsageByResidDateAndView/";
+
+        URL url;
+        HttpURLConnection connection = null;
+        String textResult;
+        JSONArray result;
+        float usage = 0;
+        try {
+            // Get resident ID from database.
+            url = new URL(BASE_URL + methodPath + resid + "/" + date + theDay + "/daily");
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            Scanner inStreamResID = new Scanner(connection.getInputStream());
+            textResult = "";
+            while (inStreamResID.hasNextLine()) {
+                textResult += inStreamResID.nextLine();
+            }
+            inStreamResID.close();
+
+            result = new JSONArray(textResult);
+            if (result.length() > 0) {
+                String stringResult = result.getJSONObject(0).getString("usage");
+                usage = Float.valueOf(stringResult);
+            }
+
+        } catch (MalformedURLException e1) {
+            e1.printStackTrace();
+        } catch (IOException e2) {
+            e2.printStackTrace();
+        } catch (JSONException e3) {
+            e3.printStackTrace();
+        } catch (NullPointerException e5) {
+            e5.printStackTrace();
+        } finally {
+            connection.disconnect();
+        }
+        return usage;
+    }
+
+    // Http requests in SQLite.
+
+    protected static int findGreatestUsageID() {
+        final String BASE_URL = "http://" + LOCAL_HOST + ":8080/SmartER/webresources";
+        final String methodResidPath = "/smarter.elecusage/";
+
+        URL url;
+        HttpURLConnection connection = null;
+        String textResult;
+        int usageArray[];
+        int greatestUsageID = -1;
+        try {
+            // Get resident ID from database.
+            url = new URL(BASE_URL + methodResidPath);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setConnectTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            Scanner inStreamResID = new Scanner(connection.getInputStream());
+            textResult = "";
+            while (inStreamResID.hasNextLine()) {
+                textResult += inStreamResID.nextLine();
+            }
+
+            // Assign values of all resid into a array.
+            JSONArray allResult = new JSONArray(textResult);
+            usageArray = new int[allResult.length()];
+            for (int i = 0; i < allResult.length(); i++) {
+                JSONObject resident = allResult.getJSONObject(i);
+                usageArray[i] = resident.getInt("usageid");
+            }
+
+            // Find out the greatest resid.
+            for (int id : usageArray) {
+                if (id >= greatestUsageID)
+                    greatestUsageID = id;
+            }
+
+        } catch (MalformedURLException e1) {
+            e1.printStackTrace();
+        } catch (IOException e2) {
+            e2.printStackTrace();
+        } catch (JSONException e3) {
+            e3.printStackTrace();
+        } catch (NullPointerException e5) {
+            e5.printStackTrace();
+        } finally {
+            connection.disconnect();
+        }
+        return greatestUsageID;
     }
 }
 
